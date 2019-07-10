@@ -1,0 +1,9 @@
+version: "2"
+
+options:
+  verbose: false
+syncs:
+  applications-sync: # name of the intermediary sync volume
+    src: './apps' # host source directory
+    sync_userid: 33 # giving permissions to www-data user (as defined in nginx and php-fpm Dockerfiles)
+    sync_excludes: ['node_modules', '.git', '.DS_Store'] # ignored directories

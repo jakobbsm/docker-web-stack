@@ -1,0 +1,78 @@
+version: '3'
+
+services:
+    nginx-proxy:
+        image: jwilder/nginx-proxy
+        container_name: nginx-proxy
+        ports:
+            - "127.0.0.1:80:80"
+            - "127.0.0.1:443:443"
+        volumes:
+            - ./config/nginx-proxy/conf:/etc/nginx/conf.d
+            - ./config/nginx-proxy/vhost:/etc/nginx/vhost.d
+            - ./config/nginx-proxy/proxy.conf:/etc/nginx/proxy.conf
+            - html:/usr/share/nginx/html
+            - dhparam:/etc/nginx/dhparam
+            - certs:/etc/nginx/certs:ro
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+        restart: always
+
+    web:
+        image: nginx:latest
+        volumes:
+#            - ./apps:/apps:cached
+            - applications-sync:/apps:nocopy
+            - ./logs/nginx:/logs/nginx
+            - ./config/nginx/xdebug:/etc/nginx/xdebug
+            - ./config/nginx/hosts:/etc/nginx/hosts
+            - ./config/nginx/init.conf:/etc/nginx/conf.d/default.conf
+# If domains need to contact each other alias might be needed        
+        networks:
+            default:
+                aliases:
+#                    - domain1.test
+#                    - domain2.test
+        environment:
+#            - VIRTUAL_HOST=domain1.test, domain2.test
+    php:
+        build:
+            dockerfile: Dockerfile
+            context: ./dockerfiles/php
+        volumes:
+            - applications-sync:/apps:nocopy
+#            - ./logs/xdebug:/logs/xdebug
+            - ./config/php/custom.conf:/usr/local/etc/php-fpm.d/zz-custom.conf:cached
+            - ./config/php/custom.ini:/usr/local/etc/php/conf.d/zz-custom.ini:cached
+#            - ./logs/php-fpm/:/tmp/xdebug_log
+    db:
+        image: mysql
+        ports:
+            - "127.0.0.1:3306:3306"
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: somepassword
+    mailhog:
+        image: mailhog/mailhog
+        restart: always
+        command: ["-storage=maildir", "-maildir-path=/maildir"]
+        volumes:
+            - ./data/mailhog:/maildir
+        environment:
+            - VIRTUAL_HOST=mailhog.test
+            - VIRTUAL_PORT=8025
+
+networks:
+    default:
+        external:
+            name: dev-network
+
+volumes:
+    applications-sync:
+        external: true
+    html:
+    dhparam:
+    certs:
+

@@ -1,0 +1,11 @@
+.idea/
+.vscode/
+logs/
+data/
+.DS_Store
+
+apps/
+!apps/default/index.php
+config/nginx/hosts/*
+!config/nginx/hosts/default.conf
+config/nginx-proxy/conf/*
