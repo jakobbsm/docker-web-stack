@@ -8,4 +8,5 @@ apps/
 !apps/default/index.php
 config/nginx/hosts/*
 !config/nginx/hosts/default.conf
+!config/nginx/hosts/examples/*
 config/nginx-proxy/conf/*
